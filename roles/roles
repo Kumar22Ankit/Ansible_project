@@ -1,0 +1,8 @@
+roles/
+├── apache
+│   ├── tasks
+│   │   └── main.yml
+│   └── templates
+└── ec2
+    ├── tasks
+    │   └── main.yml
