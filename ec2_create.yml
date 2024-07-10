@@ -1,0 +1,68 @@
+---
+- name: Create an EC2 instance and install Apache
+  hosts: localhost
+  gather_facts: no
+  vars:
+    aws_region: ap-south-1
+    instance_type: t2.micro
+    ami: ami-0ad21ae1d0696ad58 # Update with the AMI ID for Ubuntu in your region
+    key_name: ansible
+  tasks:
+    - name: Create EC2 instance
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        region: "{{ aws_region }}"
+        wait: yes
+        network:
+          assign_public_ip: yes
+      register: ec2
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Wait for SSH to come up
+      ansible.builtin.wait_for:
+        host: "{{ ec2.instances[0].public_ip_address }}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ ec2.instances[0].public_ip_address }}"
+        groupname: ec2_hosts
+
+    - name: Install Python on remote server
+      ansible.builtin.raw: sudo apt-get update && sudo apt-get install -y python3
+      delegate_to: "{{ ec2.instances[0].public_ip_address }}"
+
+    - name: Output instance public IP
+      debug:
+        msg: "EC2 instance public IP: {{ ec2.instances[0].public_ip_address }}"
+
+- name: Configure Apache on EC2 instance
+  hosts: ec2_hosts
+  become: yes
+  tasks:
+    - name: Update and install Apache
+      apt:
+        update_cache: yes
+        name: apache2
+        state: present
+
+    - name: Start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Ensure Apache is running
+      shell: systemctl status apache2
+      register: apache_status
+      ignore_errors: yes
+
+    - name: Output Apache status
+      debug:
+        var: apache_status
