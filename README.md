@@ -24,3 +24,6 @@ AWS and have it ready with Apache running.
 
   <h4>Verify Installation</h4>
 After the playbook completes, you can verify that Apache is running by accessing the public IP address of the EC2 instance in your web browser.
+
+<h3>License</h3>
+This project is licensed under the MIT License. See the LICENSE file for more details.
