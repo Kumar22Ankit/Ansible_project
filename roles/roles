@@ -1,8 +1,8 @@
 roles/
 ├── apache
 │   ├── tasks
-│   │   └── main.yml
+│   │   └── ec2_create.yml
 │   └── templates
 └── ec2
     ├── tasks
-    │   └── main.yml
+    │   └── ec2_create.yml
